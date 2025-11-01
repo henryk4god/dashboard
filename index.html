@@ -13,6 +13,9 @@
         <header class="header">
             <h1>Christian Apps Dashboard</h1>
             <p>Your collection of spiritual tools and resources</p>
+            <button id="support-toggle" class="support-toggle">
+                💝 Support Our Ministry
+            </button>
         </header>
         
         <div class="apps-grid" id="apps-grid">
@@ -23,6 +26,45 @@
     <!-- App Container -->
     <div id="app-container" class="app-container">
         <!-- Apps will load in iframes here -->
+    </div>
+
+    <!-- Support Token Popup -->
+    <div id="support-popup" class="support-popup">
+        <div class="support-card">
+            <button id="close-support" class="close-support">×</button>
+            <div class="support-icon">💝</div>
+            <h3>Support Our Ministry</h3>
+            <p>Your generous support helps us continue developing spiritual tools and resources for the community.</p>
+            
+            <div class="bank-details">
+                <div class="bank-info">
+                    <span class="bank-label">Bank Name:</span>
+                    <span class="bank-value">UBA</span>
+                </div>
+                <div class="bank-info">
+                    <span class="bank-label">Account Name:</span>
+                    <span class="bank-value">Henry Lucky</span>
+                </div>
+                <div class="bank-info">
+                    <span class="bank-label">Account Number:</span>
+                    <span class="bank-value copyable" id="account-number">2023268027</span>
+                    <button class="copy-btn" onclick="copyAccountNumber()">📋</button>
+                </div>
+            </div>
+            
+            <div class="support-actions">
+                <button class="support-btn primary" onclick="handleSupport()">
+                    I've Supported 🙂
+                </button>
+                <button class="support-btn secondary" onclick="closeSupportPopup()">
+                    Maybe Later
+                </button>
+            </div>
+            
+            <div class="support-footer">
+                <small>"Each of you should give what you have decided in your heart to give, not reluctantly or under compulsion, for God loves a cheerful giver." - 2 Corinthians 9:7</small>
+            </div>
+        </div>
     </div>
 
     <!-- Global Navigation -->
