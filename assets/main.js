@@ -71,8 +71,8 @@ const apps = [
 
 // DOM Elements
 const dashboard = document.getElementById('dashboard');
+const appContainer = document.getElementById('app-container');
 const appsGrid = document.getElementById('apps-grid');
-const appViews = document.getElementById('app-views');
 const globalBackButton = document.getElementById('global-back-button');
 
 // State management
@@ -83,6 +83,15 @@ const appCache = new Map();
 function initDashboard() {
     renderAppCards();
     setupEventListeners();
+    
+    // Check for deep linking
+    if (window.location.hash) {
+        const appId = window.location.hash.substring(1);
+        const app = apps.find(a => a.id === appId);
+        if (app) {
+            setTimeout(() => openApp(appId), 500);
+        }
+    }
 }
 
 // Render app cards in the dashboard
@@ -106,7 +115,7 @@ function renderAppCards() {
 
 // Set up event listeners
 function setupEventListeners() {
-    // App card buttons
+    // App card buttons and cards
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('app-button')) {
             const appId = e.target.getAttribute('data-app-id');
@@ -134,158 +143,147 @@ function setupEventListeners() {
     });
 }
 
-// Open an app
+// Open an app in full-width container
 async function openApp(appId) {
     const app = apps.find(a => a.id === appId);
     if (!app) return;
     
     currentAppId = appId;
     
-    // Update URL without reload
+    // Update URL for deep linking
     window.history.pushState({ appId }, '', `#${appId}`);
     
-    // Hide dashboard and show back button
+    // Show loading state
+    showLoadingState(app);
+    
+    // Hide dashboard and show app container
     dashboard.classList.remove('active-view');
     dashboard.classList.add('hidden-view');
+    appContainer.classList.add('active');
     globalBackButton.classList.remove('hidden');
     
-    // Check if app is already loaded
-    let appView = document.getElementById(`app-${appId}`);
-    
-    if (!appView) {
-        // Create new app view
-        appView = document.createElement('div');
-        appView.id = `app-${appId}`;
-        appView.className = 'app-view';
-        appView.innerHTML = `
-            <div class="app-view-header">
-                <div class="app-view-title">${app.name}</div>
-            </div>
-            <div class="app-view-content">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div class="loading-text">Loading ${app.name}...</div>
-                </div>
-            </div>
-        `;
-        appViews.appendChild(appView);
-        
-        // Load the app content
-        await loadAppContent(app, appView);
+    try {
+        // Load app content
+        await loadAppContent(app);
+    } catch (error) {
+        console.error('Error loading app:', error);
+        showErrorState(app, error);
     }
-    
-    // Show the app view
-    document.querySelectorAll('.app-view').forEach(view => {
-        view.classList.remove('active');
-    });
-    appView.classList.add('active');
+}
+
+// Show loading state
+function showLoadingState(app) {
+    appContainer.innerHTML = `
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading ${app.name}...</div>
+        </div>
+    `;
 }
 
 // Load app content
-async function loadAppContent(app, appView) {
+async function loadAppContent(app) {
+    // Check cache first
+    if (appCache.has(app.id)) {
+        appContainer.innerHTML = appCache.get(app.id);
+        reinitializeAppScripts();
+        return;
+    }
+    
     try {
-        const response = await fetch(app.url, {
-            mode: 'cors',
-            headers: {
-                'Accept': 'text/html'
-            }
-        });
-        
+        // Fetch the app content
+        const response = await fetch(app.url);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
         }
         
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         
-        // Extract the main content (you might need to adjust this based on your app structure)
-        let content = doc.querySelector('main') || doc.querySelector('.container') || doc.querySelector('.app') || doc.body;
+        // Extract the main content - adjust selectors based on your app structure
+        let contentElement = doc.querySelector('main') || 
+                            doc.querySelector('.container') || 
+                            doc.querySelector('.app-container') ||
+                            doc.querySelector('#app') ||
+                            doc.body;
         
-        // Create a container for the mini app
-        const miniApp = document.createElement('div');
-        miniApp.className = 'mini-app';
-        miniApp.innerHTML = content.innerHTML;
+        // Create a clean container for the app
+        const appContent = document.createElement('div');
+        appContent.className = 'app-content-full';
+        appContent.innerHTML = contentElement.innerHTML;
         
-        // Update the app view
-        const appContent = appView.querySelector('.app-view-content');
-        appContent.innerHTML = '';
-        appContent.appendChild(miniApp);
+        // Cache the content
+        appCache.set(app.id, appContent.innerHTML);
         
-        // Cache the loaded app
-        appCache.set(app.id, miniApp.innerHTML);
+        // Display the app
+        appContainer.innerHTML = '';
+        appContainer.appendChild(appContent);
         
-        // Re-initialize any scripts (basic approach)
-        reinitializeScripts(miniApp);
+        // Reinitialize scripts
+        reinitializeAppScripts();
         
     } catch (error) {
-        console.error('Error loading app:', error);
-        showErrorState(app, appView, error);
+        throw error;
     }
 }
 
-// Basic script reinitialization (for simple apps)
-function reinitializeScripts(container) {
-    // Remove existing scripts to avoid duplicates
-    const existingScripts = container.querySelectorAll('script');
-    existingScripts.forEach(script => script.remove());
+// Reinitialize scripts for the loaded app
+function reinitializeAppScripts() {
+    const scripts = appContainer.querySelectorAll('script');
     
-    // Find and re-execute script tags (basic implementation)
-    const scriptTags = container.querySelectorAll('script');
-    scriptTags.forEach(oldScript => {
+    scripts.forEach(oldScript => {
         const newScript = document.createElement('script');
         
-        if (oldScript.src) {
-            // External script
-            newScript.src = oldScript.src;
-        } else {
-            // Inline script
-            newScript.textContent = oldScript.textContent;
-        }
-        
-        // Copy attributes
+        // Copy all attributes
         Array.from(oldScript.attributes).forEach(attr => {
             newScript.setAttribute(attr.name, attr.value);
         });
         
-        container.appendChild(newScript);
+        // Handle external scripts
+        if (oldScript.src) {
+            newScript.src = oldScript.src;
+        } else {
+            // Handle inline scripts
+            newScript.textContent = oldScript.textContent;
+        }
+        
+        // Replace the old script with new one
+        oldScript.parentNode.replaceChild(newScript, oldScript);
     });
 }
 
 // Show error state
-function showErrorState(app, appView, error) {
-    const appContent = appView.querySelector('.app-view-content');
-    appContent.innerHTML = `
-        <div class="error-state">
+function showErrorState(app, error) {
+    appContainer.innerHTML = `
+        <div class="error-container">
             <div class="error-icon">⚠️</div>
+            <div class="error-title">Unable to Load ${app.name}</div>
             <div class="error-text">
-                Failed to load ${app.name}.<br>
-                <small>${error.message}</small>
+                There was a problem loading the application.<br>
+                <small>Error: ${error.message}</small>
             </div>
-            <button class="retry-button" onclick="retryLoadApp('${app.id}')">Retry</button>
+            <button class="retry-button" onclick="retryAppLoad('${app.id}')">Try Again</button>
+            <button class="retry-button" onclick="closeCurrentApp()" style="margin-top: 10px; background: #6c757d;">Back to Dashboard</button>
         </div>
     `;
 }
 
 // Retry loading an app
-function retryLoadApp(appId) {
-    const appView = document.getElementById(`app-${appId}`);
+function retryAppLoad(appId) {
     const app = apps.find(a => a.id === appId);
-    
-    if (app && appView) {
-        loadAppContent(app, appView);
+    if (app) {
+        openApp(appId);
     }
 }
 
-// Close current app
+// Close current app and return to dashboard
 function closeCurrentApp() {
     if (!currentAppId) return;
     
-    // Hide current app view
-    const currentAppView = document.getElementById(`app-${currentAppId}`);
-    if (currentAppView) {
-        currentAppView.classList.remove('active');
-    }
+    // Clear app container
+    appContainer.innerHTML = '';
+    appContainer.classList.remove('active');
     
     // Show dashboard
     dashboard.classList.remove('hidden-view');
@@ -293,21 +291,16 @@ function closeCurrentApp() {
     globalBackButton.classList.add('hidden');
     
     // Update URL
-    window.history.pushState({}, '', window.location.pathname);
+    if (window.location.hash) {
+        window.history.pushState({}, '', window.location.pathname);
+    }
     
     currentAppId = null;
 }
 
+// Make functions globally available for HTML onclick
+window.retryAppLoad = retryAppLoad;
+window.closeCurrentApp = closeCurrentApp;
+
 // Initialize the dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', initDashboard);
-
-// Handle initial URL hash
-window.addEventListener('load', function() {
-    if (window.location.hash) {
-        const appId = window.location.hash.substring(1);
-        const app = apps.find(a => a.id === appId);
-        if (app) {
-            setTimeout(() => openApp(appId), 100);
-        }
-    }
-});
