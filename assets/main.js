@@ -57,16 +57,6 @@ const apps = [
         type: 'external'
     }
     // ADD NEW APPS HERE - Follow the same format as above
-    /*
-    {
-        id: 'your-app-id',
-        name: 'Your App Name',
-        description: 'Brief description of what the app does',
-        url: 'https://your-github-username.github.io/repository-name/',
-        icon: '🔤',
-        type: 'external'
-    },
-    */
 ];
 
 // DOM Elements
@@ -181,7 +171,7 @@ function showLoadingState(app) {
     `;
 }
 
-// Load app content
+// Load app content with CSS isolation
 async function loadAppContent(app) {
     // Check cache first
     if (appCache.has(app.id)) {
@@ -201,30 +191,65 @@ async function loadAppContent(app) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         
-        // Extract the main content - adjust selectors based on your app structure
+        // Create isolated container
+        const isolatedContainer = document.createElement('div');
+        isolatedContainer.className = 'app-content-isolated';
+        
+        // Extract and process the main content
         let contentElement = doc.querySelector('main') || 
                             doc.querySelector('.container') || 
                             doc.querySelector('.app-container') ||
                             doc.querySelector('#app') ||
                             doc.body;
         
-        // Create a clean container for the app
-        const appContent = document.createElement('div');
-        appContent.className = 'app-content-full';
-        appContent.innerHTML = contentElement.innerHTML;
+        // Clone the content to avoid modifying the original
+        const contentClone = contentElement.cloneNode(true);
         
-        // Cache the content
-        appCache.set(app.id, appContent.innerHTML);
+        // Process CSS isolation
+        await processCSSIsolation(doc, isolatedContainer);
+        
+        // Add the content to isolated container
+        isolatedContainer.appendChild(contentClone);
+        
+        // Cache the isolated content
+        const cacheContent = isolatedContainer.outerHTML;
+        appCache.set(app.id, cacheContent);
         
         // Display the app
         appContainer.innerHTML = '';
-        appContainer.appendChild(appContent);
+        appContainer.appendChild(isolatedContainer);
         
         // Reinitialize scripts
         reinitializeAppScripts();
         
     } catch (error) {
         throw error;
+    }
+}
+
+// Process CSS isolation to prevent conflicts
+async function processCSSIsolation(sourceDoc, isolatedContainer) {
+    // Get all style tags and link tags from the source document
+    const styles = sourceDoc.querySelectorAll('style, link[rel="stylesheet"]');
+    
+    for (const style of styles) {
+        if (style.tagName === 'STYLE') {
+            // For inline styles, we can use them directly but scope them
+            const scopedStyle = document.createElement('style');
+            scopedStyle.textContent = style.textContent;
+            isolatedContainer.appendChild(scopedStyle);
+        } else if (style.tagName === 'LINK' && style.rel === 'stylesheet') {
+            // For external stylesheets, we need to load and scope them
+            try {
+                const cssResponse = await fetch(style.href);
+                const cssText = await cssResponse.text();
+                const scopedStyle = document.createElement('style');
+                scopedStyle.textContent = cssText;
+                isolatedContainer.appendChild(scopedStyle);
+            } catch (error) {
+                console.warn('Failed to load external stylesheet:', style.href);
+            }
+        }
     }
 }
 
@@ -243,13 +268,27 @@ function reinitializeAppScripts() {
         // Handle external scripts
         if (oldScript.src) {
             newScript.src = oldScript.src;
+            // Add to the app container to maintain context
+            appContainer.appendChild(newScript);
         } else {
-            // Handle inline scripts
-            newScript.textContent = oldScript.textContent;
+            // Handle inline scripts - execute in isolated context
+            try {
+                // Create a function from the script content and execute it
+                const scriptFunction = new Function(oldScript.textContent);
+                scriptFunction();
+            } catch (error) {
+                console.warn('Error executing inline script:', error);
+                // Fallback: try to execute directly
+                try {
+                    eval(oldScript.textContent);
+                } catch (e) {
+                    console.error('Failed to execute script:', e);
+                }
+            }
         }
         
-        // Replace the old script with new one
-        oldScript.parentNode.replaceChild(newScript, oldScript);
+        // Remove the old script
+        oldScript.remove();
     });
 }
 
