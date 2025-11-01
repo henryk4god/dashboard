@@ -3,8 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // App configuration - ADD NEW APPS HERE
     const apps = [
         {
-            id: 'bible-devotional',
-            title: 'Bible Devotional App',
+            id: 'Deliverance Prayer',
+            title: 'Deliverance Prayer App',
             description: 'Daily Bible verses and devotional content to inspire your spiritual journey.',
             icon: '📖',
             url: 'apps/bible-devotional/index.html'
