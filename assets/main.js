@@ -5,58 +5,60 @@ const apps = [
         name: 'Daily Devotional',
         description: 'Daily Bible teachings and inspirational content for spiritual growth and deeper connection with God.',
         url: 'https://henryk4god.github.io/daily-bible-teaching/',
-        icon: '📖',
-        type: 'external'
+        icon: '📖'
     },
     {
         id: 'prayer-system-guide',
         name: 'Prayer System Guide',
         description: 'A comprehensive guide to developing and maintaining an effective prayer system for consistent spiritual practice.',
         url: 'https://henryk4god.github.io/Prayer-System-/',
-        icon: '🙏',
-        type: 'external'
+        icon: '🙏'
     },
     {
         id: 'warfare-prayer',
         name: 'Daily Warfare Prayer',
         description: 'Powerful spiritual warfare prayers for protection, victory, and overcoming daily spiritual battles.',
         url: 'https://henryk4god.github.io/warfare/',
-        icon: '🛡️',
-        type: 'external'
+        icon: '🛡️'
     },
     {
         id: 'freedom-prayer',
         name: 'Freedom Prayer',
         description: 'Transformative prayers focused on deliverance, healing, and finding true freedom in Christ.',
         url: 'https://henryk4god.github.io/Ascestra-Prayer-Freedom-/',
-        icon: '🕊️',
-        type: 'external'
+        icon: '🕊️'
     },
     {
         id: 'dream-interpreter',
         name: 'Dream Interpreter',
         description: 'Biblical tools and resources for interpreting dreams and understanding spiritual messages.',
         url: 'https://henryk4god.github.io/dream/',
-        icon: '💭',
-        type: 'external'
+        icon: '💭'
     },
     {
         id: 'prayer-tracker',
         name: 'Prayer Tracker',
         description: 'Track your prayer requests, monitor progress, and witness how God answers prayers over time.',
         url: 'https://henryk4god.github.io/Prayer-Tracker-/',
-        icon: '📝',
-        type: 'external'
+        icon: '📝'
     },
     {
         id: 'intercessors-template',
         name: 'Intercessors Template',
         description: 'Essential resources and templates for building and maintaining intercessory prayer ministry.',
         url: 'https://henryk4god.github.io/Intercessors-Template-/',
-        icon: '✝️',
-        type: 'external'
+        icon: '✝️'
     }
     // ADD NEW APPS HERE - Follow the same format as above
+    /*
+    {
+        id: 'your-app-id',
+        name: 'Your App Name',
+        description: 'Brief description of what the app does',
+        url: 'https://your-github-username.github.io/repository-name/',
+        icon: '🔤'
+    },
+    */
 ];
 
 // DOM Elements
@@ -67,7 +69,6 @@ const globalBackButton = document.getElementById('global-back-button');
 
 // State management
 let currentAppId = null;
-const appCache = new Map();
 
 // Initialize the dashboard
 function initDashboard() {
@@ -133,8 +134,8 @@ function setupEventListeners() {
     });
 }
 
-// Open an app in full-width container
-async function openApp(appId) {
+// Open an app in full-screen iframe
+function openApp(appId) {
     const app = apps.find(a => a.id === appId);
     if (!app) return;
     
@@ -152,13 +153,8 @@ async function openApp(appId) {
     appContainer.classList.add('active');
     globalBackButton.classList.remove('hidden');
     
-    try {
-        // Load app content
-        await loadAppContent(app);
-    } catch (error) {
-        console.error('Error loading app:', error);
-        showErrorState(app, error);
-    }
+    // Create and load iframe
+    loadAppInIframe(app);
 }
 
 // Show loading state
@@ -171,125 +167,30 @@ function showLoadingState(app) {
     `;
 }
 
-// Load app content with CSS isolation
-async function loadAppContent(app) {
-    // Check cache first
-    if (appCache.has(app.id)) {
-        appContainer.innerHTML = appCache.get(app.id);
-        reinitializeAppScripts();
-        return;
-    }
+// Load app in iframe
+function loadAppInIframe(app) {
+    // Create iframe
+    const iframe = document.createElement('iframe');
+    iframe.className = 'app-iframe';
+    iframe.src = app.url;
+    iframe.frameBorder = '0';
+    iframe.allowFullscreen = true;
     
-    try {
-        // Fetch the app content
-        const response = await fetch(app.url);
-        if (!response.ok) {
-            throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
-        }
-        
-        const html = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        // Create isolated container
-        const isolatedContainer = document.createElement('div');
-        isolatedContainer.className = 'app-content-isolated';
-        
-        // Extract and process the main content
-        let contentElement = doc.querySelector('main') || 
-                            doc.querySelector('.container') || 
-                            doc.querySelector('.app-container') ||
-                            doc.querySelector('#app') ||
-                            doc.body;
-        
-        // Clone the content to avoid modifying the original
-        const contentClone = contentElement.cloneNode(true);
-        
-        // Process CSS isolation
-        await processCSSIsolation(doc, isolatedContainer);
-        
-        // Add the content to isolated container
-        isolatedContainer.appendChild(contentClone);
-        
-        // Cache the isolated content
-        const cacheContent = isolatedContainer.outerHTML;
-        appCache.set(app.id, cacheContent);
-        
-        // Display the app
+    // Handle iframe load
+    iframe.onload = function() {
+        console.log(`${app.name} loaded successfully`);
+    };
+    
+    // Handle iframe errors
+    iframe.onerror = function() {
+        showErrorState(app, new Error('Failed to load application'));
+    };
+    
+    // Replace loading with iframe after a short delay to show loading state
+    setTimeout(() => {
         appContainer.innerHTML = '';
-        appContainer.appendChild(isolatedContainer);
-        
-        // Reinitialize scripts
-        reinitializeAppScripts();
-        
-    } catch (error) {
-        throw error;
-    }
-}
-
-// Process CSS isolation to prevent conflicts
-async function processCSSIsolation(sourceDoc, isolatedContainer) {
-    // Get all style tags and link tags from the source document
-    const styles = sourceDoc.querySelectorAll('style, link[rel="stylesheet"]');
-    
-    for (const style of styles) {
-        if (style.tagName === 'STYLE') {
-            // For inline styles, we can use them directly but scope them
-            const scopedStyle = document.createElement('style');
-            scopedStyle.textContent = style.textContent;
-            isolatedContainer.appendChild(scopedStyle);
-        } else if (style.tagName === 'LINK' && style.rel === 'stylesheet') {
-            // For external stylesheets, we need to load and scope them
-            try {
-                const cssResponse = await fetch(style.href);
-                const cssText = await cssResponse.text();
-                const scopedStyle = document.createElement('style');
-                scopedStyle.textContent = cssText;
-                isolatedContainer.appendChild(scopedStyle);
-            } catch (error) {
-                console.warn('Failed to load external stylesheet:', style.href);
-            }
-        }
-    }
-}
-
-// Reinitialize scripts for the loaded app
-function reinitializeAppScripts() {
-    const scripts = appContainer.querySelectorAll('script');
-    
-    scripts.forEach(oldScript => {
-        const newScript = document.createElement('script');
-        
-        // Copy all attributes
-        Array.from(oldScript.attributes).forEach(attr => {
-            newScript.setAttribute(attr.name, attr.value);
-        });
-        
-        // Handle external scripts
-        if (oldScript.src) {
-            newScript.src = oldScript.src;
-            // Add to the app container to maintain context
-            appContainer.appendChild(newScript);
-        } else {
-            // Handle inline scripts - execute in isolated context
-            try {
-                // Create a function from the script content and execute it
-                const scriptFunction = new Function(oldScript.textContent);
-                scriptFunction();
-            } catch (error) {
-                console.warn('Error executing inline script:', error);
-                // Fallback: try to execute directly
-                try {
-                    eval(oldScript.textContent);
-                } catch (e) {
-                    console.error('Failed to execute script:', e);
-                }
-            }
-        }
-        
-        // Remove the old script
-        oldScript.remove();
-    });
+        appContainer.appendChild(iframe);
+    }, 1000);
 }
 
 // Show error state
