@@ -13,6 +13,7 @@
         <header class="header">
             <h1>Christian Apps Dashboard</h1>
             <p>Your collection of spiritual tools and resources</p>
+            <!-- ADD THIS BUTTON - KEEP EVERYTHING ELSE THE SAME -->
             <button id="support-toggle" class="support-toggle">
                 💝 Support Our Ministry
             </button>
@@ -28,8 +29,8 @@
         <!-- Apps will load in iframes here -->
     </div>
 
-    <!-- Support Token Popup -->
-    <div id="support-popup" class="support-popup">
+    <!-- Support Token Popup - ADD THIS NEW SECTION -->
+    <div id="support-popup" class="support-popup hidden">
         <div class="support-card">
             <button id="close-support" class="close-support">×</button>
             <div class="support-icon">💝</div>
@@ -47,7 +48,7 @@
                 </div>
                 <div class="bank-info">
                     <span class="bank-label">Account Number:</span>
-                    <span class="bank-value copyable" id="account-number">2023268027</span>
+                    <span class="bank-value copyable">2023268027</span>
                     <button class="copy-btn" onclick="copyAccountNumber()">📋</button>
                 </div>
             </div>
