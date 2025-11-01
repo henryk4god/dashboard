@@ -159,7 +159,7 @@ body {
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-/* App Container - ISOLATED ENVIRONMENT */
+/* App Container - FULL SCREEN IFRAME */
 .app-container {
     position: fixed;
     top: 0;
@@ -170,7 +170,7 @@ body {
     z-index: 100;
     transform: translateX(100%);
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow-y: auto;
+    overflow: hidden;
 }
 
 .app-container.active {
@@ -181,21 +181,12 @@ body {
     transform: translateX(100%);
 }
 
-/* Isolated App Content - CRITICAL: This prevents CSS conflicts */
-.app-content-isolated {
+/* Full Screen Iframe */
+.app-iframe {
     width: 100%;
-    min-height: 100vh;
-    background: white;
-    /* Reset all inherited styles */
-    all: initial;
-    /* Re-apply basic styles for the isolated container only */
+    height: 100%;
+    border: none;
     display: block;
-    position: relative;
-}
-
-.app-content-isolated * {
-    /* Allow apps to use their own styles */
-    all: unset;
 }
 
 /* Global Back Button */
