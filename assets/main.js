@@ -5,49 +5,56 @@ const apps = [
         name: 'Daily Devotional',
         description: 'Daily Bible teachings and inspirational content for spiritual growth and deeper connection with God.',
         url: 'https://henryk4god.github.io/daily-bible-teaching/',
-        icon: '📖'
+        icon: '📖',
+        type: 'external'
     },
     {
         id: 'prayer-system-guide',
         name: 'Prayer System Guide',
         description: 'A comprehensive guide to developing and maintaining an effective prayer system for consistent spiritual practice.',
         url: 'https://henryk4god.github.io/Prayer-System-/',
-        icon: '🙏'
+        icon: '🙏',
+        type: 'external'
     },
     {
         id: 'warfare-prayer',
         name: 'Daily Warfare Prayer',
         description: 'Powerful spiritual warfare prayers for protection, victory, and overcoming daily spiritual battles.',
         url: 'https://henryk4god.github.io/warfare/',
-        icon: '🛡️'
+        icon: '🛡️',
+        type: 'external'
     },
     {
         id: 'freedom-prayer',
         name: 'Freedom Prayer',
         description: 'Transformative prayers focused on deliverance, healing, and finding true freedom in Christ.',
         url: 'https://henryk4god.github.io/Ascestra-Prayer-Freedom-/',
-        icon: '🕊️'
+        icon: '🕊️',
+        type: 'external'
     },
     {
         id: 'dream-interpreter',
         name: 'Dream Interpreter',
         description: 'Biblical tools and resources for interpreting dreams and understanding spiritual messages.',
-        url: 'https://michyritebiz.systeme.io/dinterp',
-        icon: '💭'
+        url: 'https://henryk4god.github.io/dream/',
+        icon: '💭',
+        type: 'external'
     },
     {
         id: 'prayer-tracker',
         name: 'Prayer Tracker',
         description: 'Track your prayer requests, monitor progress, and witness how God answers prayers over time.',
         url: 'https://henryk4god.github.io/Prayer-Tracker-/',
-        icon: '📝'
+        icon: '📝',
+        type: 'external'
     },
     {
         id: 'intercessors-template',
         name: 'Intercessors Template',
         description: 'Essential resources and templates for building and maintaining intercessory prayer ministry.',
         url: 'https://henryk4god.github.io/Intercessors-Template-/',
-        icon: '✝️'
+        icon: '✝️',
+        type: 'external'
     }
     // ADD NEW APPS HERE - Follow the same format as above
     /*
@@ -56,19 +63,21 @@ const apps = [
         name: 'Your App Name',
         description: 'Brief description of what the app does',
         url: 'https://your-github-username.github.io/repository-name/',
-        icon: '🔤'
+        icon: '🔤',
+        type: 'external'
     },
     */
 ];
 
 // DOM Elements
 const dashboard = document.getElementById('dashboard');
-const appContainer = document.getElementById('app-container');
 const appsGrid = document.getElementById('apps-grid');
-const appFrame = document.getElementById('app-frame');
-const backButton = document.getElementById('back-button');
-const appTitle = document.getElementById('app-title');
-const appFrameContainer = document.getElementById('app-frame-container');
+const appViews = document.getElementById('app-views');
+const globalBackButton = document.getElementById('global-back-button');
+
+// State management
+let currentAppId = null;
+const appCache = new Map();
 
 // Initialize the dashboard
 function initDashboard() {
@@ -103,63 +112,202 @@ function setupEventListeners() {
             const appId = e.target.getAttribute('data-app-id');
             openApp(appId);
         }
+        
+        if (e.target.closest('.app-card')) {
+            const card = e.target.closest('.app-card');
+            const button = card.querySelector('.app-button');
+            if (button && !e.target.classList.contains('app-button')) {
+                const appId = button.getAttribute('data-app-id');
+                openApp(appId);
+            }
+        }
     });
     
-    // Back button
-    backButton.addEventListener('click', closeApp);
+    // Global back button
+    globalBackButton.addEventListener('click', closeCurrentApp);
+    
+    // Handle browser back button
+    window.addEventListener('popstate', function(event) {
+        if (currentAppId) {
+            closeCurrentApp();
+        }
+    });
 }
 
-// Open an app in the iframe
-function openApp(appId) {
+// Open an app
+async function openApp(appId) {
     const app = apps.find(a => a.id === appId);
     if (!app) return;
     
-    // Update UI
-    appTitle.textContent = app.name;
+    currentAppId = appId;
     
-    // Show loading state
-    appFrameContainer.innerHTML = `
-        <div style="display: flex; justify-content: center; align-items: center; height: 100%; background: #f8f9fa;">
-            <div style="text-align: center;">
-                <div class="loading" style="width: 40px; height: 40px; margin: 0 auto 20px;"></div>
-                <p style="color: #6c757d; font-size: 1.1rem;">Loading ${app.name}...</p>
+    // Update URL without reload
+    window.history.pushState({ appId }, '', `#${appId}`);
+    
+    // Hide dashboard and show back button
+    dashboard.classList.remove('active-view');
+    dashboard.classList.add('hidden-view');
+    globalBackButton.classList.remove('hidden');
+    
+    // Check if app is already loaded
+    let appView = document.getElementById(`app-${appId}`);
+    
+    if (!appView) {
+        // Create new app view
+        appView = document.createElement('div');
+        appView.id = `app-${appId}`;
+        appView.className = 'app-view';
+        appView.innerHTML = `
+            <div class="app-view-header">
+                <div class="app-view-title">${app.name}</div>
             </div>
+            <div class="app-view-content">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading ${app.name}...</div>
+                </div>
+            </div>
+        `;
+        appViews.appendChild(appView);
+        
+        // Load the app content
+        await loadAppContent(app, appView);
+    }
+    
+    // Show the app view
+    document.querySelectorAll('.app-view').forEach(view => {
+        view.classList.remove('active');
+    });
+    appView.classList.add('active');
+}
+
+// Load app content
+async function loadAppContent(app, appView) {
+    try {
+        const response = await fetch(app.url, {
+            mode: 'cors',
+            headers: {
+                'Accept': 'text/html'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Extract the main content (you might need to adjust this based on your app structure)
+        let content = doc.querySelector('main') || doc.querySelector('.container') || doc.querySelector('.app') || doc.body;
+        
+        // Create a container for the mini app
+        const miniApp = document.createElement('div');
+        miniApp.className = 'mini-app';
+        miniApp.innerHTML = content.innerHTML;
+        
+        // Update the app view
+        const appContent = appView.querySelector('.app-view-content');
+        appContent.innerHTML = '';
+        appContent.appendChild(miniApp);
+        
+        // Cache the loaded app
+        appCache.set(app.id, miniApp.innerHTML);
+        
+        // Re-initialize any scripts (basic approach)
+        reinitializeScripts(miniApp);
+        
+    } catch (error) {
+        console.error('Error loading app:', error);
+        showErrorState(app, appView, error);
+    }
+}
+
+// Basic script reinitialization (for simple apps)
+function reinitializeScripts(container) {
+    // Remove existing scripts to avoid duplicates
+    const existingScripts = container.querySelectorAll('script');
+    existingScripts.forEach(script => script.remove());
+    
+    // Find and re-execute script tags (basic implementation)
+    const scriptTags = container.querySelectorAll('script');
+    scriptTags.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        
+        if (oldScript.src) {
+            // External script
+            newScript.src = oldScript.src;
+        } else {
+            // Inline script
+            newScript.textContent = oldScript.textContent;
+        }
+        
+        // Copy attributes
+        Array.from(oldScript.attributes).forEach(attr => {
+            newScript.setAttribute(attr.name, attr.value);
+        });
+        
+        container.appendChild(newScript);
+    });
+}
+
+// Show error state
+function showErrorState(app, appView, error) {
+    const appContent = appView.querySelector('.app-view-content');
+    appContent.innerHTML = `
+        <div class="error-state">
+            <div class="error-icon">⚠️</div>
+            <div class="error-text">
+                Failed to load ${app.name}.<br>
+                <small>${error.message}</small>
+            </div>
+            <button class="retry-button" onclick="retryLoadApp('${app.id}')">Retry</button>
         </div>
     `;
-    
-    // Load the app after a brief delay to show loading state
-    setTimeout(() => {
-        appFrameContainer.innerHTML = `<iframe id="app-frame" class="app-frame" src="${app.url}" frameborder="0"></iframe>`;
-    }, 500);
-    
-    // Switch views
-    dashboard.classList.add('hidden');
-    appContainer.classList.remove('hidden');
-    
-    // Update the app frame reference
-    setTimeout(() => {
-        appFrame = document.getElementById('app-frame');
-    }, 600);
 }
 
-// Close the app and return to dashboard
-function closeApp() {
-    // Clear iframe
-    if (appFrameContainer) {
-        appFrameContainer.innerHTML = '';
-    }
+// Retry loading an app
+function retryLoadApp(appId) {
+    const appView = document.getElementById(`app-${appId}`);
+    const app = apps.find(a => a.id === appId);
     
-    // Switch views
-    appContainer.classList.add('hidden');
-    dashboard.classList.remove('hidden');
+    if (app && appView) {
+        loadAppContent(app, appView);
+    }
 }
 
-// Handle browser back button
-window.addEventListener('popstate', function(event) {
-    if (!appContainer.classList.contains('hidden')) {
-        closeApp();
+// Close current app
+function closeCurrentApp() {
+    if (!currentAppId) return;
+    
+    // Hide current app view
+    const currentAppView = document.getElementById(`app-${currentAppId}`);
+    if (currentAppView) {
+        currentAppView.classList.remove('active');
     }
-});
+    
+    // Show dashboard
+    dashboard.classList.remove('hidden-view');
+    dashboard.classList.add('active-view');
+    globalBackButton.classList.add('hidden');
+    
+    // Update URL
+    window.history.pushState({}, '', window.location.pathname);
+    
+    currentAppId = null;
+}
 
 // Initialize the dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', initDashboard);
+
+// Handle initial URL hash
+window.addEventListener('load', function() {
+    if (window.location.hash) {
+        const appId = window.location.hash.substring(1);
+        const app = apps.find(a => a.id === appId);
+        if (app) {
+            setTimeout(() => openApp(appId), 100);
+        }
+    }
+});
