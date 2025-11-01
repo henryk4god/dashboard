@@ -159,7 +159,7 @@ body {
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-/* App Container */
+/* App Container - ISOLATED ENVIRONMENT */
 .app-container {
     position: fixed;
     top: 0;
@@ -181,11 +181,21 @@ body {
     transform: translateX(100%);
 }
 
-/* App Content Styles */
-.app-content-full {
+/* Isolated App Content - CRITICAL: This prevents CSS conflicts */
+.app-content-isolated {
     width: 100%;
     min-height: 100vh;
     background: white;
+    /* Reset all inherited styles */
+    all: initial;
+    /* Re-apply basic styles for the isolated container only */
+    display: block;
+    position: relative;
+}
+
+.app-content-isolated * {
+    /* Allow apps to use their own styles */
+    all: unset;
 }
 
 /* Global Back Button */
@@ -341,18 +351,6 @@ body {
         padding: 10px 15px;
         font-size: 0.9rem;
     }
-    
-    .loading-text {
-        font-size: 1.1rem;
-    }
-    
-    .error-title {
-        font-size: 1.3rem;
-    }
-    
-    .error-text {
-        font-size: 1rem;
-    }
 }
 
 @media (max-width: 480px) {
@@ -364,15 +362,7 @@ body {
         font-size: 1rem;
     }
     
-    .app-content h3 {
-        font-size: 1.3rem;
-    }
-    
     .apps-grid {
         grid-template-columns: 1fr;
-    }
-    
-    .app-card {
-        margin: 0 5px;
     }
 }
