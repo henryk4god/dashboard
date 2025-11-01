@@ -9,7 +9,7 @@
 </head>
 <body>
     <!-- Main Dashboard -->
-    <div id="dashboard" class="dashboard">
+    <div id="dashboard" class="dashboard active-view">
         <header class="header">
             <h1>Christian Apps Dashboard</h1>
             <p>Your collection of spiritual tools and resources</p>
@@ -20,20 +20,15 @@
         </div>
     </div>
     
-    <!-- App Container (hidden by default) -->
-    <div id="app-container" class="app-container hidden">
-        <header class="app-header">
-            <button id="back-button" class="back-button">
-                ← Back to Main Menu
-            </button>
-            <h2 id="app-title">App Title</h2>
-        </header>
-        <div class="app-content">
-            <div id="app-frame-container" class="app-frame-container">
-                <iframe id="app-frame" class="app-frame" frameborder="0"></iframe>
-            </div>
-        </div>
+    <!-- App Containers -->
+    <div id="app-views" class="app-views">
+        <!-- App views will be dynamically loaded here -->
     </div>
+
+    <!-- Back Button (Fixed) -->
+    <button id="global-back-button" class="global-back-button hidden">
+        ← Back to Dashboard
+    </button>
     
     <script src="assets/main.js"></script>
 </body>
