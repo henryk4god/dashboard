@@ -33,7 +33,7 @@ const apps = [
         id: 'dream-interpreter',
         name: 'Dream Interpreter',
         description: 'Biblical tools and resources for interpreting dreams and understanding spiritual messages.',
-        url: 'https://henryk4god.github.io/dream/',
+        url: 'https://michyritebiz.systeme.io/dinterp',
         icon: '💭'
     },
     {
