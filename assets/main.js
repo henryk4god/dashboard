@@ -9,13 +9,6 @@ const apps = [
         icon: '📖'
     },
     {
-        id: 'prayer-system-guide',
-        name: 'Prayer System Guide',
-        description: 'A comprehensive guide to developing and maintaining an effective prayer system for consistent spiritual practice.',
-        url: 'https://henryk4god.github.io/Prayer-System-/',
-        icon: '🙏'
-    },
-    {
         id: 'warfare-prayer',
         name: 'Daily Warfare Prayer',
         description: 'Powerful spiritual warfare prayers for protection, victory, and overcoming daily spiritual battles.',
@@ -23,18 +16,25 @@ const apps = [
         icon: '🛡️'
     },
     {
+        id: 'dream-interpreter',
+        name: 'Dream Interpreter',
+        description: 'Biblical tools and resources for interpreting dreams and understanding spiritual messages.',
+        url: 'https://henryk4god.github.io/dream/',
+        icon: '💭'
+    },
+    {
+        id: 'prayer-system-guide',
+        name: 'Prayer System Guide',
+        description: 'A comprehensive guide to developing and maintaining an effective prayer system for consistent spiritual practice.',
+        url: 'https://henryk4god.github.io/Prayer-System-/',
+        icon: '🙏'
+    },
+    {
         id: 'freedom-prayer',
         name: 'Freedom Prayer',
         description: 'Transformative prayers focused on deliverance, healing, and finding true freedom in Christ.',
         url: 'https://henryk4god.github.io/Ascestra-Prayer-Freedom-/',
         icon: '🕊️'
-    },
-    {
-        id: 'dream-interpreter',
-        name: 'Dream Interpreter',
-        description: 'Biblical tools and resources for interpreting dreams and understanding spiritual messages.',
-        url: 'https://michyritebiz.systeme.io/dinterp',
-        icon: '💭'
     },
     {
         id: 'prayer-tracker',
