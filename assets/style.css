@@ -1,3 +1,5 @@
+[file name]: style.css
+[file content begin]
 /* Reset and Base Styles */
 * {
     margin: 0;
@@ -201,11 +203,11 @@ body {
     display: block;
 }
 
-/* Global Back Button */
+/* Global Back Button - MOVED TO BOTTOM-RIGHT */
 .global-back-button {
     position: fixed;
-    top: 25px;
-    left: 25px;
+    bottom: 25px;
+    right: 25px;
     z-index: 1000;
     background: rgba(255, 255, 255, 0.95);
     color: #667eea;
@@ -223,14 +225,14 @@ body {
 
 .global-back-button:hover {
     background: white;
-    transform: translateX(-3px);
+    transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .global-back-button.hidden {
     opacity: 0;
     pointer-events: none;
-    transform: translateX(-20px);
+    transform: translateY(20px);
 }
 
 /* Loading Animation */
@@ -585,8 +587,8 @@ body {
     }
     
     .global-back-button {
-        top: 15px;
-        left: 15px;
+        bottom: 15px;
+        right: 15px;
         padding: 10px 15px;
         font-size: 0.9rem;
     }
@@ -647,3 +649,4 @@ body {
         font-size: 1.3rem;
     }
 }
+[file content end]
