@@ -3,69 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Christian Apps Dashboard</title>
+    <title>DMLabsbot - Pro AI Tool kits for Content and Digital Marketing</title>
     <link rel="stylesheet" href="assets/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Main Dashboard -->
     <div id="dashboard" class="dashboard active-view">
         <header class="header">
-            <h1>Christian Apps Dashboard</h1>
-            <p>Your collection of spiritual tools and resources</p>
-            <!-- ADD THIS BUTTON - KEEP EVERYTHING ELSE THE SAME -->
-            <button id="support-toggle" class="support-toggle">
-                💝 Support Our Ministry
-            </button>
+            <h1>Pro AI Tool kits for Content and Digital Marketing</h1>
+            <p>DMLabsbot - Your collection of AI-powered marketing tools</p>
         </header>
         
-        <div class="apps-grid" id="apps-grid">
-            <!-- App cards will be dynamically generated here -->
+        <div class="tools-grid" id="tools-grid">
+            <!-- Tool cards will be dynamically generated here -->
         </div>
     </div>
     
     <!-- App Container -->
     <div id="app-container" class="app-container">
-        <!-- Apps will load in iframes here -->
-    </div>
-
-    <!-- Support Token Popup - ADD THIS NEW SECTION -->
-    <div id="support-popup" class="support-popup hidden">
-        <div class="support-card">
-            <button id="close-support" class="close-support">×</button>
-            <div class="support-icon">💝</div>
-            <h3>Support Our Ministry</h3>
-            <p>Your generous support helps us continue developing spiritual tools and resources for the community.</p>
-            
-            <div class="bank-details">
-                <div class="bank-info">
-                    <span class="bank-label">Bank Name:</span>
-                    <span class="bank-value">UBA</span>
-                </div>
-                <div class="bank-info">
-                    <span class="bank-label">Account Name:</span>
-                    <span class="bank-value">Henry Lucky</span>
-                </div>
-                <div class="bank-info">
-                    <span class="bank-label">Account Number:</span>
-                    <span class="bank-value copyable">2023268027</span>
-                    <button class="copy-btn" onclick="copyAccountNumber()">📋</button>
-                </div>
-            </div>
-            
-            <div class="support-actions">
-                <button class="support-btn primary" onclick="handleSupport()">
-                    I've Supported 🙂
-                </button>
-                <button class="support-btn secondary" onclick="closeSupportPopup()">
-                    Maybe Later
-                </button>
-            </div>
-            
-            <div class="support-footer">
-                <small>"Each of you should give what you have decided in your heart to give, not reluctantly or under compulsion, for God loves a cheerful giver." - 2 Corinthians 9:7</small>
-            </div>
-        </div>
+        <!-- Tools will load in iframes here -->
     </div>
 
     <!-- Global Navigation -->
