@@ -1,5 +1,3 @@
-[file name]: main.js
-[file content begin]
 // === KEEP ALL YOUR EXISTING APP CODE === 
 // App data - Add your apps here
 const apps = [
@@ -338,4 +336,3 @@ window.closeSupportPopup = closeSupportPopup;
 
 // Initialize the dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', initDashboard);
-[file content end]
